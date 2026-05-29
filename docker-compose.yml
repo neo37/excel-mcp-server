@@ -1,0 +1,24 @@
+services:
+  excel-mcp:
+    build: .
+    environment:
+      - EXCEL_FILES_PATH=/data
+      - FASTMCP_PORT=8017
+      - EXCEL_SERVER_URL=http://localhost:8080
+    volumes:
+      - excel_data:/data
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - excel_data:/data:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - excel-mcp
+    restart: unless-stopped
+
+volumes:
+  excel_data:

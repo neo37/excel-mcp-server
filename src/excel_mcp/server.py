@@ -27,6 +27,7 @@ from excel_mcp.workbook import get_workbook_info
 from excel_mcp.data import write_data
 from excel_mcp.pivot import create_pivot_table as create_pivot_table_impl
 from excel_mcp.tables import create_excel_table as create_table_impl
+from excel_mcp.file_link import find_latest_excel_file
 from excel_mcp.sheet import (
     copy_sheet,
     delete_sheet,
@@ -812,6 +813,51 @@ def delete_sheet_columns(
     except Exception as e:
         logger.error(f"Error deleting columns: {e}")
         raise
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        title="Get Latest Excel File",
+        readOnlyHint=True,
+    ),
+)
+def get_latest_excel_file(pattern: Optional[str] = None) -> str:
+    """
+    Find the Excel file with the most recent datetime in its filename.
+
+    Scans EXCEL_FILES_PATH for .xlsx/.xlsm/.xls files that contain a datetime
+    in their name (supports formats: 2025-05-29, 20250529, 2025-05-29_14-30, etc.)
+    and returns the one with the latest datetime.
+
+    Args:
+        pattern: Optional substring to filter filenames (e.g. "report", "export").
+                 If omitted, searches all Excel files.
+
+    Returns:
+        Filename (relative path) ready to use with other Excel tools, plus
+        a download URL if EXCEL_SERVER_URL env var is configured.
+    """
+    if EXCEL_FILES_PATH is None:
+        return "Error: EXCEL_FILES_PATH not configured — run server in SSE or HTTP mode."
+
+    filename = find_latest_excel_file(EXCEL_FILES_PATH, pattern)
+    if not filename:
+        suffix = f" matching pattern '{pattern}'" if pattern else ""
+        return f"No Excel files with a datetime in the filename found{suffix}."
+
+    base_url = os.environ.get("EXCEL_SERVER_URL", "").rstrip("/")
+    if base_url:
+        download_url = f"{base_url}/files/{filename}"
+        return (
+            f"Latest Excel file: {filename}\n"
+            f"Download URL: {download_url}\n"
+            f"Use filepath '{filename}' with other Excel tools."
+        )
+    return (
+        f"Latest Excel file: {filename}\n"
+        f"Use filepath '{filename}' with other Excel tools.\n"
+        f"(Set EXCEL_SERVER_URL env var to also get a download link)"
+    )
+
 
 def run_sse():
     """Run Excel MCP server in SSE mode."""
