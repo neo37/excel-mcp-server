@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "excel": {
+      "url": "https://some-excel-mcp-tools.business-pad.com/mcp/",
+      "type": "http"
+    }
+  }
+}
