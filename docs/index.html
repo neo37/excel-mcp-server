@@ -1,182 +1,332 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Excel MCP Server</title>
-    <style>
-        body {
-            background-color: #121212;
-            color: #e0e0e0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 2rem;
-            border-bottom: 1px solid #333;
-        }
-        header h1 {
-            margin: 0;
-            font-size: 2rem;
-        }
-        .github-link {
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-            color: #e0e0e0;
-            font-size: 1.2rem;
-        }
-        .github-link svg {
-            width: 24px;
-            height: 24px;
-            margin-right: 8px;
-            fill: currentColor;
-        }
-        .stars {
-            background-color: #333;
-            padding: 5px 10px;
-            border-radius: 5px;
-            margin-left: 10px;
-        }
-        .hero {
-            text-align: center;
-            padding: 4rem 0;
-        }
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            line-height: 1.2;
-        }
-        .hero img {
-            width: 200px;
-            margin-bottom: 1rem;
-        }
-        .hero p {
-            font-size: 1.2rem;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        .section {
-            padding: 2rem 0;
-            border-bottom: 1px solid #333;
-        }
-        .section:last-child {
-            border-bottom: none;
-        }
-        h2 {
-            font-size: 1.8rem;
-            margin-bottom: 1rem;
-        }
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-        ul li {
-            background-color: #1e1e1e;
-            padding: 1rem;
-            border-radius: 5px;
-            margin-bottom: 0.5rem;
-        }
-        footer {
-            text-align: center;
-            padding: 2rem 0;
-            font-size: 0.9rem;
-            color: #888;
-        }
-        @media (max-width: 600px) {
-            header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .github-link {
-                margin-top: 1rem;
-            }
-            header h1 {
-                font-size: 1.5rem;
-            }
-            .hero p {
-                font-size: 1rem;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Excel MCP Server — BusinessPad</title>
+  <meta name="description" content="MCP-сервер для работы с Excel-файлами через AI-агентов. Docker, HTTPS, автопоиск файлов по дате.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bp-bg-base:      #000000;
+      --bp-bg-elevated:  #1A1A1A;
+      --bp-primary:      #7C88FC;
+      --bp-accent:       #FF8562;
+      --bp-fg-primary:   #FFFFFF;
+      --bp-fg-secondary: rgba(255,255,255,0.72);
+      --bp-fg-muted:     rgba(255,255,255,0.50);
+      --bp-border:       rgba(255,255,255,0.08);
+      --font-bp:         "Manrope","Arial",system-ui,sans-serif;
+      --radius-lg:       16px;
+      --radius-pill:     999px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bp-bg-base);
+      color: var(--bp-fg-primary);
+      font-family: var(--font-bp);
+      font-size: 16px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(0,0,0,0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--bp-border);
+      padding: 0 40px; height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none; color: var(--bp-fg-primary);
+      font-weight: 700; font-size: 15px; letter-spacing: -0.01em;
+    }
+    .logo-mark {
+      width: 28px; height: 28px; background: var(--bp-primary); border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 13px; color: #000;
+    }
+    .header-badge { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--bp-fg-muted); }
+
+    section { padding: 100px 40px; }
+    .container { max-width: 1080px; margin: 0 auto; }
+    hr.divider { border: none; border-top: 1px solid var(--bp-border); margin: 0 40px; }
+
+    .hero { padding: 120px 40px 100px; text-align: center; }
+    .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--bp-primary); margin-bottom: 20px; }
+    h1 { font-size: clamp(40px,6vw,80px); font-weight: 800; line-height: 1.05; letter-spacing: -0.025em; margin-bottom: 24px; }
+    .hero-sub { font-size: 20px; color: var(--bp-fg-secondary); max-width: 560px; margin: 0 auto 48px; line-height: 1.5; }
+    .cta-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--bp-primary); color: #000;
+      font-family: var(--font-bp); font-size: 14px; font-weight: 700;
+      padding: 14px 28px; border-radius: var(--radius-pill); border: none;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+      transition: transform 150ms, filter 150ms;
+    }
+    .btn-primary:hover { transform: translateY(-1px); filter: brightness(1.08); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-ghost {
+      background: transparent; color: var(--bp-fg-secondary);
+      font-family: var(--font-bp); font-size: 14px; font-weight: 600;
+      padding: 14px 28px; border-radius: var(--radius-pill); border: 1px solid var(--bp-border);
+      text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+      transition: border-color 150ms, color 150ms, transform 150ms;
+    }
+    .btn-ghost:hover { border-color: rgba(255,255,255,0.25); color: #fff; transform: translateY(-1px); }
+
+    .section-label { font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--bp-fg-muted); margin-bottom: 16px; }
+    h2 { font-size: clamp(28px,4vw,48px); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 20px; }
+    .section-body { font-size: 18px; color: var(--bp-fg-secondary); max-width: 540px; line-height: 1.55; margin-bottom: 48px; }
+    code {
+      font-family: "JetBrains Mono","Fira Mono",monospace; font-size: 12px;
+      background: rgba(124,136,252,0.12); color: var(--bp-primary); padding: 2px 6px; border-radius: 4px;
+    }
+
+    pre {
+      background: var(--bp-bg-elevated); border: 1px solid var(--bp-border);
+      border-radius: 12px; padding: 24px 28px; overflow-x: auto;
+      font-family: "JetBrains Mono","Fira Mono",monospace; font-size: 13px; line-height: 1.6;
+      color: var(--bp-fg-secondary); text-align: left;
+    }
+    pre .hl { color: var(--bp-primary); }
+    pre .cm { color: var(--bp-fg-muted); }
+    pre .st { color: var(--bp-accent); }
+
+    .cards { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 16px; margin-top: 56px; }
+    .card {
+      background: var(--bp-bg-elevated); border: 1px solid var(--bp-border);
+      border-radius: var(--radius-lg); padding: 28px;
+      transition: border-color 200ms, transform 200ms;
+    }
+    .card:hover { border-color: rgba(124,136,252,0.3); transform: translateY(-2px); }
+    .card-icon {
+      width: 40px; height: 40px; background: rgba(124,136,252,0.12); border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 16px; color: var(--bp-primary); font-size: 20px; font-style: normal;
+    }
+    .card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.01em; }
+    .card p { font-size: 14px; color: var(--bp-fg-secondary); line-height: 1.55; }
+
+    .steps { display: flex; flex-direction: column; gap: 12px; margin-top: 40px; }
+    .step {
+      display: flex; gap: 20px; align-items: flex-start;
+      background: var(--bp-bg-elevated); border: 1px solid var(--bp-border);
+      border-radius: 12px; padding: 20px 24px;
+    }
+    .step-num {
+      min-width: 28px; height: 28px; background: var(--bp-primary); color: #000;
+      border-radius: 50%; font-size: 12px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;
+    }
+    .step-content h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .step-content p { font-size: 13px; color: var(--bp-fg-secondary); }
+
+    .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 40px; }
+    .tool-row {
+      display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+      background: var(--bp-bg-elevated); border: 1px solid var(--bp-border); border-radius: 10px;
+    }
+    .tool-row.new { border-color: rgba(124,136,252,0.35); }
+    .tool-name { font-family: "JetBrains Mono","Fira Mono",monospace; font-size: 12px; color: var(--bp-primary); white-space: nowrap; }
+    .tool-desc { font-size: 13px; color: var(--bp-fg-secondary); }
+    .badge-new {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      background: rgba(124,136,252,0.15); color: var(--bp-primary); border: 1px solid rgba(124,136,252,0.35);
+      padding: 2px 7px; border-radius: var(--radius-pill); white-space: nowrap;
+    }
+
+    footer {
+      padding: 48px 40px; display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 16px;
+    }
+    footer p { font-size: 13px; color: var(--bp-fg-muted); }
+    footer a { color: var(--bp-fg-muted); text-decoration: none; }
+    footer a:hover { color: var(--bp-fg-secondary); }
+
+    @media (max-width: 700px) {
+      header { padding: 0 20px; }
+      section, .hero { padding-left: 20px; padding-right: 20px; }
+      hr.divider { margin: 0 20px; }
+      .tools-grid { grid-template-columns: 1fr; }
+      footer { padding: 40px 20px; flex-direction: column; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>excel-mcp-server</h1>
-            <a href="https://github.com/haris-musa/excel-mcp-server" target="_blank" class="github-link">
-                <svg viewBox="0 0 16 16" version="1.1" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
-                <span>View on GitHub</span>
-                <span class="stars">Loading...</span>
-            </a>
-        </header>
 
-        <main>
-            <section class="hero">
-                <h1>Excel MCP Server</h1>
-                <p>A Model Context Protocol (MCP) server that lets you manipulate Excel files without needing Microsoft Excel installed. Create, read, and modify Excel workbooks with your AI agent.</p>
-            </section>
+<header>
+  <a class="logo" href="#">
+    <div class="logo-mark">b</div>
+    Excel MCP Server
+  </a>
+  <span class="header-badge">BusinessPad Tools</span>
+</header>
 
-            <section class="section">
-                <h2>Features</h2>
-                <ul>
-                    <li>📊 Create and modify Excel workbooks</li>
-                    <li>📝 Read and write data</li>
-                    <li>🎨 Apply formatting and styles</li>
-                    <li>📈 Create charts and visualizations</li>
-                    <li>📊 Generate pivot tables</li>
-                    <li>🔄 Manage worksheets and ranges</li>
-                    <li>🔌 Triple transport support: stdio, streamable HTTP, and SSE</li>
-                </ul>
-            </section>
+<section class="hero">
+  <div class="eyebrow">MCP — Model Context Protocol</div>
+  <h1>Excel для AI-агентов</h1>
+  <p class="hero-sub">Подключите Claude и других AI-ассистентов к вашим Excel-файлам. Чтение, запись, формулы, сводные таблицы — без кода.</p>
+  <div class="cta-row">
+    <a class="btn-primary" href="https://github.com/neo37/excel-mcp-server">
+      <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/></svg>
+      GitHub
+    </a>
+    <a class="btn-ghost" href="https://some-excel-mcp-tools.business-pad.com/files/">Файлы</a>
+  </div>
+</section>
 
-            <section class="section">
-                <h2>Available Tools</h2>
-                <p>A comprehensive set of tools to interact with your Excel files.</p>
-                <ul>
-                    <li><strong>Workbook Operations:</strong> Create workbooks and worksheets, and get metadata.</li>
-                    <li><strong>Data Operations:</strong> Read and write data to worksheets.</li>
-                    <li><strong>Formatting Operations:</strong> Apply rich formatting to cell ranges.</li>
-                    <li><strong>Formula Operations:</strong> Apply and validate Excel formulas.</li>
-                    <li><strong>Chart Operations:</strong> Create various types of charts.</li>
-                    <li><strong>Pivot Table Operations:</strong> Generate pivot tables from your data.</li>
-                    <li><strong>Table Operations:</strong> Create native Excel tables.</li>
-                </ul>
-            </section>
-        </main>
+<hr class="divider">
 
-        <footer>
-            <p>&copy; 2025 excelmcpserver.com - An open source project by haris-musa.</p>
-        </footer>
+<section>
+  <div class="container">
+    <div class="section-label">Подключение</div>
+    <h2>Быстрый старт</h2>
+    <p class="section-body">Добавьте один блок в <code>.claude/settings.json</code> — и вся команда получит доступ автоматически.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h4>Добавьте сервер в настройки Claude Code</h4>
+          <p>Файл <code>~/.claude/settings.json</code> (пользовательский) или <code>.claude/settings.json</code> в репозитории (для всей команды)</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h4>Положите Excel-файлы на сервер</h4>
+          <p>Смонтируйте папку в <code>/opt/excel-mcp/files/</code> или создайте файл прямо из Claude через инструмент <code>create_workbook</code></p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h4>Спросите Claude про таблицу</h4>
+          <p>«Найди последний отчёт и покажи итоги» — Claude вызовет <code>get_latest_excel_file</code> и прочитает данные</p>
+        </div>
+      </div>
     </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('https://api.github.com/repos/haris-musa/excel-mcp-server')
-                .then(response => response.json())
-                .then(data => {
-                    const starsSpan = document.querySelector('.stars');
-                    if (starsSpan && data.stargazers_count !== undefined) {
-                        starsSpan.textContent = '★ ' + data.stargazers_count;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching star count:', error);
-                    const starsSpan = document.querySelector('.stars');
-                    if (starsSpan) {
-                        starsSpan.textContent = '★ N/A'; // Fallback if API fails
-                    }
-                });
-        });
-    </script>
+    <pre style="margin-top:32px"><span class="cm">// .claude/settings.json</span>
+{
+  <span class="hl">"mcpServers"</span>: {
+    <span class="hl">"excel"</span>: {
+      <span class="hl">"url"</span>: <span class="st">"https://some-excel-mcp-tools.business-pad.com/mcp/"</span>,
+      <span class="hl">"type"</span>: <span class="st">"http"</span>
+    }
+  }
+}</pre>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section>
+  <div class="container">
+    <div class="section-label">Новый инструмент</div>
+    <h2>Автопоиск файла по дате</h2>
+    <p class="section-body">Файлы с датой в имени обновляются регулярно. Инструмент <code>get_latest_excel_file</code> всегда найдёт самый свежий — по datetime в названии.</p>
+    <pre><span class="cm"># Поддерживаемые форматы даты в имени файла:</span>
+report_<span class="hl">2025-05-29</span>.xlsx
+export_<span class="hl">2025-05-29_14-30</span>.xlsx
+data_<span class="hl">20250529</span>.xlsx
+file_<span class="hl">20250529_143000</span>.xlsx
+doc_<span class="hl">2025.05.29</span>.xlsx
+
+<span class="cm"># Ответ инструмента:</span>
+Latest Excel file: sales_report_<span class="hl">2025-05-29_14-30</span>.xlsx
+Download URL: https://some-excel-mcp-tools.business-pad.com/files/sales_report_<span class="hl">2025-05-29_14-30</span>.xlsx
+Use filepath 'sales_report_<span class="hl">2025-05-29_14-30</span>.xlsx' with other Excel tools.</pre>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section>
+  <div class="container">
+    <div class="section-label">Возможности</div>
+    <h2>Всё для работы с таблицами</h2>
+    <div class="cards">
+      <div class="card">
+        <i class="card-icon">↻</i>
+        <h3>Автопоиск по дате</h3>
+        <p>Находит последний файл по datetime в имени — не нужно передавать точное название каждый раз.</p>
+      </div>
+      <div class="card">
+        <i class="card-icon">↓</i>
+        <h3>Постоянные ссылки</h3>
+        <p>Каждый файл доступен по HTTPS-ссылке для скачивания или передачи в другие сервисы.</p>
+      </div>
+      <div class="card">
+        <i class="card-icon">ƒ</i>
+        <h3>Формулы и форматирование</h3>
+        <p>Применяйте Excel-формулы, форматируйте ячейки, объединяйте диапазоны через естественный язык.</p>
+      </div>
+      <div class="card">
+        <i class="card-icon">⊞</i>
+        <h3>Сводные таблицы и графики</h3>
+        <p>Создавайте pivot-таблицы и диаграммы одной командой — без Excel на устройстве.</p>
+      </div>
+      <div class="card">
+        <i class="card-icon">☁</i>
+        <h3>Docker + HTTPS</h3>
+        <p>Один сервер для всей команды. SSL через Let's Encrypt, nginx в роли прокси.</p>
+      </div>
+      <div class="card">
+        <i class="card-icon">⌘</i>
+        <h3>Командный доступ</h3>
+        <p>Добавьте URL в <code>.claude/settings.json</code> репозитория — все получат доступ при клонировании.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section>
+  <div class="container">
+    <div class="section-label">Инструменты</div>
+    <h2>Полный список</h2>
+    <div class="tools-grid">
+      <div class="tool-row new">
+        <div style="display:flex;flex-direction:column;gap:4px;width:100%">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="tool-name">get_latest_excel_file</span>
+            <span class="badge-new">новый</span>
+          </div>
+          <span class="tool-desc">Найти файл с последней датой в имени</span>
+        </div>
+      </div>
+      <div class="tool-row"><span class="tool-name">read_data_from_excel</span>&nbsp;<span class="tool-desc">Прочитать диапазон ячеек</span></div>
+      <div class="tool-row"><span class="tool-name">write_data_to_excel</span>&nbsp;<span class="tool-desc">Записать данные</span></div>
+      <div class="tool-row"><span class="tool-name">apply_formula</span>&nbsp;<span class="tool-desc">Применить Excel-формулу</span></div>
+      <div class="tool-row"><span class="tool-name">format_range</span>&nbsp;<span class="tool-desc">Форматирование ячеек</span></div>
+      <div class="tool-row"><span class="tool-name">create_chart</span>&nbsp;<span class="tool-desc">Создать график</span></div>
+      <div class="tool-row"><span class="tool-name">create_pivot_table</span>&nbsp;<span class="tool-desc">Сводная таблица</span></div>
+      <div class="tool-row"><span class="tool-name">create_workbook</span>&nbsp;<span class="tool-desc">Создать новый файл</span></div>
+      <div class="tool-row"><span class="tool-name">get_workbook_metadata</span>&nbsp;<span class="tool-desc">Метаданные файла</span></div>
+      <div class="tool-row"><span class="tool-name">insert_rows / delete_rows</span>&nbsp;<span class="tool-desc">Управление строками</span></div>
+      <div class="tool-row"><span class="tool-name">merge_cells / unmerge_cells</span>&nbsp;<span class="tool-desc">Объединение ячеек</span></div>
+      <div class="tool-row"><span class="tool-name">copy_worksheet</span>&nbsp;<span class="tool-desc">Копировать лист</span></div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<footer>
+  <p>© 2025 <a href="https://business-pad.com">BusinessPad</a> — ООО «АВК Консалтинг»</p>
+  <p>
+    <a href="https://github.com/neo37/excel-mcp-server">GitHub</a>
+    &nbsp;·&nbsp;
+    <a href="https://some-excel-mcp-tools.business-pad.com/files/">Файловый сервер</a>
+    &nbsp;·&nbsp;
+    <a href="https://business-pad.com">business-pad.com</a>
+  </p>
+</footer>
+
 </body>
-</html> 
+</html>
